@@ -34,9 +34,7 @@ export async function createInvoice(formData: FormData) {
     VALUES (${customerId}, ${amountInCents}, ${status}, ${date})
   `;
   }catch(error){
-    return {
-      message: 'Missing Fields. Failed to Create Invoice.',
-    };  
+    throw new Error('Missing Fields. Failed to Create Invoice.');
   }
   revalidatePath('/dashboard/invoices');
   redirect('/dashboard/invoices');
@@ -59,9 +57,7 @@ export async function updateInvoice(id: string, formData: FormData) {
       WHERE id = ${id}
     `;
   }catch(error){
-    return {
-      message: 'Missing Fields. Failed to Update Invoice.',
-    };  
+    throw new Error('Missing Fields. Failed to Update Invoice.');
   }
     revalidatePath('/dashboard/invoices');
     redirect('/dashboard/invoices');
