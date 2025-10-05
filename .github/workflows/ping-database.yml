@@ -23,7 +23,7 @@ jobs:
 
       # Step 3: Install postgres package
       - name: Install postgres package
-        run: npm install postgres
+        run: npm install postgres --no-save --legacy-peer-deps
 
       # Step 4: Ping Database
       - name: Ping Database
