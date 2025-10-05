@@ -1,0 +1,63 @@
+name: Keep Database Active
+
+on:
+  schedule:
+    # Runs at 9:00 AM UTC every Monday and Thursday (twice a week)
+    - cron: '0 9 * * 1,4'
+  workflow_dispatch: # Allows manual triggering from the GitHub UI
+
+jobs:
+  ping-database:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Step 3: Install postgres package
+      - name: Install postgres package
+        run: npm install postgres
+
+      # Step 4: Ping Database
+      - name: Ping Database
+        env:
+          POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
+        run: |
+          node -e "
+          (async () => {
+            try {
+              console.log('Pinging database to prevent inactivity pause...');
+              
+              // Import postgres client
+              const postgres = require('postgres');
+              
+              // Create connection
+              const sql = postgres(process.env.POSTGRES_URL, { 
+                ssl: 'require',
+                max: 1 // Only need one connection for ping
+              });
+
+              // Simple lightweight query to keep database active
+              const result = await sql\`SELECT COUNT(*) as count FROM revenue LIMIT 1\`;
+              
+              console.log('✅ Database ping successful!');
+              console.log('Result:', result);
+              
+              // Close connection
+              await sql.end();
+              
+              console.log('Connection closed. Database activity logged.');
+            } catch (err) {
+              console.error('❌ Error pinging database:', err.message);
+              process.exit(1);
+            }
+          })();
+          "
+
